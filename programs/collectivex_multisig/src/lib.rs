@@ -159,6 +159,31 @@ pub mod collectivex_multisig {
 
         Ok(())
     }    
+
+    pub fn multisig_remove_member(
+        ctx: Context<MultisigRemoveMember>,
+        old_member: Pubkey,
+    ) -> Result<()> {
+        let multisig = &mut ctx.accounts.multisig;
+    
+        // Ensure there are enough members to perform multisig operations
+        require!(
+            multisig.members.len() > 1,
+            ErrorCode::RemoveLastMember
+        );
+    
+        let old_member_index = ctx.accounts.multisig
+            .members
+            .iter()
+            .position(|&key| key == old_member)
+            .ok_or(ErrorCode::NotAMember)?;
+
+        // Remove the member from the list
+        ctx.accounts.multisig.members.remove(old_member_index);
+
+    
+        Ok(())
+    }    
     
 }
 
@@ -256,6 +281,21 @@ pub struct MultisigAddMember<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct MultisigRemoveMember<'info> {
+    #[account(
+        mut,
+        seeds = [PROGRAM_CONFIG_SEED, MULTISIG_SEED, multisig.create_key.as_ref()],
+        bump,
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    #[account(mut)]
+    pub creator: Signer<'info>, // Signer who authorized the operation
+
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 #[derive(InitSpace)]
 pub struct Multisig {
@@ -265,6 +305,22 @@ pub struct Multisig {
     #[max_len(10)]
     pub members: Vec<Pubkey>,       // Members of the multisig
     pub time_lock: u32,             // Time lock in seconds
+}
+
+impl Multisig {
+    pub fn remove_member(&mut self, member_pubkey: Pubkey) -> Result<()> {
+        // Check if the member exists
+        let old_member_index = self
+            .members
+            .iter()
+            .position(|&key| key == member_pubkey)
+            .ok_or(ErrorCode::NotAMember)?;
+
+        // Remove the member from the list
+        self.members.remove(old_member_index);
+
+        Ok(())
+    }
 }
 
 #[account]
@@ -285,6 +341,12 @@ pub enum ErrorCode {
     DuplicateMember,
     #[msg("The multisig has reached its maximum member limit.")]
     ExceedsMaxMembers,
+    #[msg("Cannot remove the last member from the multisig.")]
+    RemoveLastMember,
+    #[msg("The specified member is not part of the multisig.")]
+    NotAMember,
+    #[msg("Threshold exceeds the number of members.")]
+    InvalidThreshold,
 }
 
 pub const MULTISIG_SEED: &[u8] = b"multisig";
