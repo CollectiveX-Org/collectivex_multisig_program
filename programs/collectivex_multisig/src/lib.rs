@@ -51,6 +51,25 @@ pub mod collectivex_multisig {
     
         Ok(())
     }
+
+    pub fn program_config_set_creation_fee(
+        ctx: Context<ProgramConfigSetCreationFee>,
+        new_creation_fee: u64,
+    ) -> Result<()> {
+        let program_config = &mut ctx.accounts.program_config;
+    
+        // Validate the current authority
+        require_keys_eq!(
+            program_config.authority,
+            ctx.accounts.current_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
+    
+        // Update the creation fee
+        program_config.creation_fee = new_creation_fee;
+    
+        Ok(())
+    }    
     
 }
 
@@ -73,6 +92,18 @@ pub struct ProgramConfigInit<'info> {
 
 #[derive(Accounts)]
 pub struct ProgramConfigSetAuthority<'info> {
+    #[account(
+        mut,
+        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        bump,
+    )]
+    pub program_config: Account<'info, ProgramConfig>,
+
+    pub current_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ProgramConfigSetCreationFee<'info> {
     #[account(
         mut,
         seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
