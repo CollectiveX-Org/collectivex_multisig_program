@@ -134,6 +134,31 @@ pub mod collectivex_multisig {
 
         Ok(())
     }
+
+    pub fn multisig_add_member(
+        ctx: Context<MultisigAddMember>,
+        new_member: Pubkey,
+    ) -> Result<()> {
+        let multisig = &mut ctx.accounts.multisig;
+    
+        // Ensure the new member is not already a part of the multisig
+        require!(
+            !multisig.members.contains(&new_member),
+            ErrorCode::DuplicateMember
+        );
+    
+        // Add the new member to the multisig and sort by key for consistency
+        multisig.members.push(new_member);
+        multisig.members.sort();
+    
+        // Ensure the maximum number of members isn't exceeded
+        require!(
+            multisig.members.len() <= 10,
+            ErrorCode::ExceedsMaxMembers
+        );
+
+        Ok(())
+    }    
     
 }
 
@@ -216,6 +241,21 @@ pub struct MultisigCreate<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct MultisigAddMember<'info> {
+    #[account(
+        mut,
+        seeds = [PROGRAM_CONFIG_SEED, MULTISIG_SEED, multisig.create_key.as_ref()],
+        bump,
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    #[account(mut)]
+    pub creator: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 #[derive(InitSpace)]
 pub struct Multisig {
@@ -241,6 +281,10 @@ pub enum ErrorCode {
     InvalidAuthority,
     #[msg("The treasury address is invalid.")]
     InvalidTreasury,
+    #[msg("The member is already part of the multisig.")]
+    DuplicateMember,
+    #[msg("The multisig has reached its maximum member limit.")]
+    ExceedsMaxMembers,
 }
 
 pub const MULTISIG_SEED: &[u8] = b"multisig";
