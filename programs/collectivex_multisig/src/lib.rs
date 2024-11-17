@@ -104,6 +104,11 @@ pub mod collectivex_multisig {
         members: Vec<Pubkey>,
         time_lock: u32,
     ) -> Result<()> {
+        require_keys_eq!(
+            ctx.accounts.treasury.key(),
+            ctx.accounts.program_config.treasury,
+            ErrorCode::InvalidTreasury
+        );
 
         let multisig = &mut ctx.accounts.multisig;
 
