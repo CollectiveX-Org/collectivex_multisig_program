@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 
 declare_id!("8bX4XyTtZH3xGRyE1Y4tEvhvmD4GHdjiXAsEMQ39ZUBy");
 
@@ -95,6 +96,39 @@ pub mod collectivex_multisig {
     
         Ok(())
     }    
+
+    pub fn multisig_create(
+        ctx: Context<MultisigCreate>,
+        config_authority: Option<Pubkey>,
+        threshold: u16,
+        members: Vec<Pubkey>,
+        time_lock: u32,
+    ) -> Result<()> {
+
+        let multisig = &mut ctx.accounts.multisig;
+
+        // Initialize the multisig account
+        multisig.config_authority = config_authority.unwrap_or_default();
+        multisig.threshold = threshold;
+        multisig.time_lock = time_lock;
+        multisig.members = members;
+
+        // Transfer the creation fee to the treasury
+        if ctx.accounts.program_config.creation_fee > 0 {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: ctx.accounts.creator.to_account_info(),
+                        to: ctx.accounts.treasury.to_account_info(),
+                    },
+                ),
+                ctx.accounts.program_config.creation_fee,
+            )?;
+        }
+
+        Ok(())
+    }
     
 }
 
@@ -104,7 +138,7 @@ pub struct ProgramConfigInit<'info> {
         init,
         payer = initializer,
         space = 8 + ProgramConfig::INIT_SPACE,
-        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        seeds = [PROGRAM_CONFIG_SEED],
         bump
     )]
     pub program_config: Account<'info, ProgramConfig>,
@@ -119,7 +153,7 @@ pub struct ProgramConfigInit<'info> {
 pub struct ProgramConfigSetAuthority<'info> {
     #[account(
         mut,
-        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        seeds = [PROGRAM_CONFIG_SEED],
         bump,
     )]
     pub program_config: Account<'info, ProgramConfig>,
@@ -131,7 +165,7 @@ pub struct ProgramConfigSetAuthority<'info> {
 pub struct ProgramConfigSetCreationFee<'info> {
     #[account(
         mut,
-        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        seeds = [PROGRAM_CONFIG_SEED],
         bump,
     )]
     pub program_config: Account<'info, ProgramConfig>,
@@ -143,12 +177,49 @@ pub struct ProgramConfigSetCreationFee<'info> {
 pub struct ProgramConfigSetTreasury<'info> {
     #[account(
         mut,
-        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        seeds = [PROGRAM_CONFIG_SEED],
         bump,
     )]
     pub program_config: Account<'info, ProgramConfig>,
 
     pub current_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct MultisigCreate<'info> {
+    #[account(
+        init,
+        payer = creator,
+        space = 8 + Multisig::INIT_SPACE,
+        seeds = [PROGRAM_CONFIG_SEED, MULTISIG_SEED, create_key.key().as_ref()],
+        bump
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    #[account(seeds = [PROGRAM_CONFIG_SEED], bump)]
+    pub program_config: Account<'info, ProgramConfig>,
+
+    #[account(mut)]
+    pub treasury: AccountInfo<'info>,
+
+    // The account that will be used as the seed for the multisig PDA
+    pub create_key: Signer<'info>,
+
+    #[account(mut)]
+    pub creator: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct Multisig {
+    pub create_key: Pubkey,          // Key used as a seed to multisig PDA.
+    pub config_authority: Pubkey,    // Authority to update the multisig
+    pub threshold: u16,              // Number of signatures required
+    #[max_len(10)]
+    pub members: Vec<Pubkey>,       // Members of the multisig
+    pub time_lock: u32,             // Time lock in seconds
 }
 
 #[account]
