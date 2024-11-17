@@ -32,6 +32,26 @@ pub mod collectivex_multisig {
 
         Ok(())
     }
+
+    pub fn program_config_set_authority(
+        ctx: Context<ProgramConfigSetAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        let program_config = &mut ctx.accounts.program_config;
+    
+        // Validate the current authority
+        require_keys_eq!(
+            program_config.authority,
+            ctx.accounts.current_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
+    
+        // Update the authority
+        program_config.authority = new_authority;
+    
+        Ok(())
+    }
+    
 }
 
 #[derive(Accounts)]
@@ -40,7 +60,7 @@ pub struct ProgramConfigInit<'info> {
         init,
         payer = initializer,
         space = 8 + ProgramConfig::INIT_SPACE,
-        seeds = [b"config"],
+        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
         bump
     )]
     pub program_config: Account<'info, ProgramConfig>,
@@ -49,6 +69,18 @@ pub struct ProgramConfigInit<'info> {
     pub initializer: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ProgramConfigSetAuthority<'info> {
+    #[account(
+        mut,
+        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        bump,
+    )]
+    pub program_config: Account<'info, ProgramConfig>,
+
+    pub current_authority: Signer<'info>,
 }
 
 #[account]
@@ -66,3 +98,6 @@ pub enum ErrorCode {
     #[msg("The treasury address is invalid.")]
     InvalidTreasury,
 }
+
+pub const MULTISIG_SEED: &[u8] = b"multisig";
+pub const PROGRAM_CONFIG_SEED: &[u8] = b"program_config";
