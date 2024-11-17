@@ -70,6 +70,31 @@ pub mod collectivex_multisig {
     
         Ok(())
     }    
+
+    pub fn program_config_set_treasury(
+        ctx: Context<ProgramConfigSetTreasury>,
+        new_treasury: Pubkey,
+    ) -> Result<()> {
+        let program_config = &mut ctx.accounts.program_config;
+    
+        // Validate the current authority
+        require_keys_eq!(
+            program_config.authority,
+            ctx.accounts.current_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
+    
+        // Ensure the new treasury address is valid
+        require!(
+            new_treasury != Pubkey::default(),
+            ErrorCode::InvalidTreasury
+        );
+    
+        // Update the treasury address
+        program_config.treasury = new_treasury;
+    
+        Ok(())
+    }    
     
 }
 
@@ -104,6 +129,18 @@ pub struct ProgramConfigSetAuthority<'info> {
 
 #[derive(Accounts)]
 pub struct ProgramConfigSetCreationFee<'info> {
+    #[account(
+        mut,
+        seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
+        bump,
+    )]
+    pub program_config: Account<'info, ProgramConfig>,
+
+    pub current_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ProgramConfigSetTreasury<'info> {
     #[account(
         mut,
         seeds = [MULTISIG_SEED, PROGRAM_CONFIG_SEED],
