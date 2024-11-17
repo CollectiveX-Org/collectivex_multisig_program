@@ -172,14 +172,14 @@ pub mod collectivex_multisig {
             ErrorCode::RemoveLastMember
         );
     
-        let old_member_index = ctx.accounts.multisig
+        let old_member_index = multisig
             .members
             .iter()
             .position(|&key| key == old_member)
             .ok_or(ErrorCode::NotAMember)?;
 
         // Remove the member from the list
-        ctx.accounts.multisig.members.remove(old_member_index);
+        multisig.members.remove(old_member_index);
 
     
         Ok(())
