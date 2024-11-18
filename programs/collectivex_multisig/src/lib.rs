@@ -185,6 +185,18 @@ pub mod collectivex_multisig {
         Ok(())
     }    
     
+    pub fn multisig_set_time_lock(
+        ctx: Context<MultisigSetTimeLock>,
+        new_time_lock: u32,
+    ) -> Result<()> {
+        let multisig = &mut ctx.accounts.multisig;
+    
+        // Update the time lock
+        multisig.time_lock = new_time_lock;
+    
+        Ok(())
+    }
+    
 }
 
 #[derive(Accounts)]
@@ -296,6 +308,18 @@ pub struct MultisigRemoveMember<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct MultisigSetTimeLock<'info> {
+    #[account(
+        mut,
+        seeds = [PROGRAM_CONFIG_SEED, MULTISIG_SEED, multisig.create_key.as_ref()],
+        bump,
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    pub config_authority: Signer<'info>,
+}
+
 #[account]
 #[derive(InitSpace)]
 pub struct Multisig {
@@ -305,22 +329,6 @@ pub struct Multisig {
     #[max_len(10)]
     pub members: Vec<Pubkey>,       // Members of the multisig
     pub time_lock: u32,             // Time lock in seconds
-}
-
-impl Multisig {
-    pub fn remove_member(&mut self, member_pubkey: Pubkey) -> Result<()> {
-        // Check if the member exists
-        let old_member_index = self
-            .members
-            .iter()
-            .position(|&key| key == member_pubkey)
-            .ok_or(ErrorCode::NotAMember)?;
-
-        // Remove the member from the list
-        self.members.remove(old_member_index);
-
-        Ok(())
-    }
 }
 
 #[account]
