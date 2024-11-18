@@ -224,6 +224,25 @@ pub mod collectivex_multisig {
     
         Ok(())
     }
+
+    pub fn multisig_set_config_authority(
+        ctx: Context<MultisigSetConfigAuthority>,
+        new_config_authority: Pubkey,
+    ) -> Result<()> {
+        let multisig = &mut ctx.accounts.multisig;
+
+        // Validate the current authority
+        require_keys_eq!(
+            multisig.config_authority,
+            ctx.accounts.config_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
+    
+        // Update the config authority
+        multisig.config_authority = new_config_authority;
+
+        Ok(())
+    }    
 }
 
 #[derive(Accounts)]
@@ -314,6 +333,7 @@ pub struct MultisigAddMember<'info> {
     )]
     pub multisig: Account<'info, Multisig>,
 
+    /// Authority of the current multisig to approve this operation
     #[account(mut)]
     pub config_authority: Signer<'info>,
 
@@ -329,8 +349,9 @@ pub struct MultisigRemoveMember<'info> {
     )]
     pub multisig: Account<'info, Multisig>,
 
+    /// Authority of the current multisig to approve this operation
     #[account(mut)]
-    pub config_authority: Signer<'info>, // Signer who authorized the operation
+    pub config_authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -344,6 +365,20 @@ pub struct MultisigSetTimeLock<'info> {
     )]
     pub multisig: Account<'info, Multisig>,
 
+    /// Authority of the current multisig to approve this operation
+    pub config_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct MultisigSetConfigAuthority<'info> {
+    #[account(
+        mut,
+        seeds = [PROGRAM_CONFIG_SEED, MULTISIG_SEED, multisig.create_key.as_ref()],
+        bump,
+    )]
+    pub multisig: Account<'info, Multisig>,
+
+    /// Authority of the current multisig to approve this operation
     pub config_authority: Signer<'info>,
 }
 
