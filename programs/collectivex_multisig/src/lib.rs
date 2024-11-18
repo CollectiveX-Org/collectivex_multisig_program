@@ -140,6 +140,13 @@ pub mod collectivex_multisig {
         new_member: Pubkey,
     ) -> Result<()> {
         let multisig = &mut ctx.accounts.multisig;
+
+        // Validate the current authority
+        require_keys_eq!(
+            multisig.config_authority,
+            ctx.accounts.config_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
     
         // Ensure the new member is not already a part of the multisig
         require!(
@@ -165,6 +172,20 @@ pub mod collectivex_multisig {
         old_member: Pubkey,
     ) -> Result<()> {
         let multisig = &mut ctx.accounts.multisig;
+
+        // Validate the current authority
+        require_keys_eq!(
+            multisig.config_authority,
+            ctx.accounts.config_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
+
+        // Validate the current authority
+        require_keys_eq!(
+            multisig.config_authority,
+            ctx.accounts.config_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
     
         // Ensure there are enough members to perform multisig operations
         require!(
@@ -190,13 +211,19 @@ pub mod collectivex_multisig {
         new_time_lock: u32,
     ) -> Result<()> {
         let multisig = &mut ctx.accounts.multisig;
+
+        // Validate the current authority
+        require_keys_eq!(
+            multisig.config_authority,
+            ctx.accounts.config_authority.key(),
+            ErrorCode::InvalidAuthority
+        );
     
         // Update the time lock
         multisig.time_lock = new_time_lock;
     
         Ok(())
     }
-    
 }
 
 #[derive(Accounts)]
@@ -288,7 +315,7 @@ pub struct MultisigAddMember<'info> {
     pub multisig: Account<'info, Multisig>,
 
     #[account(mut)]
-    pub creator: Signer<'info>,
+    pub config_authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -303,7 +330,7 @@ pub struct MultisigRemoveMember<'info> {
     pub multisig: Account<'info, Multisig>,
 
     #[account(mut)]
-    pub creator: Signer<'info>, // Signer who authorized the operation
+    pub config_authority: Signer<'info>, // Signer who authorized the operation
 
     pub system_program: Program<'info, System>,
 }
