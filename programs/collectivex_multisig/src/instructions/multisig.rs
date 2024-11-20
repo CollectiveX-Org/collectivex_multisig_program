@@ -23,6 +23,7 @@ pub struct MultisigCreate<'info> {
     #[account(mut)]
     pub treasury: AccountInfo<'info>,
 
+    // used as a seed for deriving multisig account
     pub create_key: Signer<'info>,
 
     #[account(mut)]
