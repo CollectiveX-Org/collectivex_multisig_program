@@ -1,14 +1,13 @@
 pub mod constants;
 pub mod error;
-pub mod state;
 pub mod instructions;
+pub mod state;
 
 use anchor_lang::prelude::*;
 
 pub use constants::*;
-pub use state::{multisig, program_config, spending_limit};
 pub use instructions::*;
-
+pub use state::{multisig, program_config, spending_limit};
 
 declare_id!("8bX4XyTtZH3xGRyE1Y4tEvhvmD4GHdjiXAsEMQ39ZUBy");
 
@@ -22,11 +21,8 @@ pub mod collectivex_multisig {
         creation_fee: u64,
         treasury: Pubkey,
     ) -> Result<()> {
-        ctx.accounts.init_program_config(
-            authority,
-            creation_fee,
-            treasury,
-        )?;
+        ctx.accounts
+            .init_program_config(authority, creation_fee, treasury)?;
 
         Ok(())
     }
@@ -46,7 +42,8 @@ pub mod collectivex_multisig {
         new_creation_fee: u64,
     ) -> Result<()> {
         ctx.accounts.check_current_authority()?;
-        ctx.accounts.set_program_config_creation_fee(new_creation_fee)?;
+        ctx.accounts
+            .set_program_config_creation_fee(new_creation_fee)?;
 
         Ok(())
     }
@@ -68,40 +65,27 @@ pub mod collectivex_multisig {
         members: Vec<Pubkey>,
         time_lock: u32,
     ) -> Result<()> {
-        ctx.accounts.create_multisig(
-            config_authority,
-            threshold,
-            members,
-            time_lock,
-        )?;
+        ctx.accounts
+            .create_multisig(config_authority, threshold, members, time_lock)?;
 
         Ok(())
     }
 
-    pub fn multisig_add_member(
-        ctx: Context<MultisigEdit>,
-        new_member: Pubkey,
-    ) -> Result<()> {
+    pub fn multisig_add_member(ctx: Context<MultisigEdit>, new_member: Pubkey) -> Result<()> {
         ctx.accounts.check_current_authority()?;
-        ctx.accounts.add_miltisig_member(new_member)?;
+        ctx.accounts.add_multisig_member(new_member)?;
 
         Ok(())
     }
 
-    pub fn multisig_remove_member(
-        ctx: Context<MultisigEdit>,
-        old_member: Pubkey,
-    ) -> Result<()> {
+    pub fn multisig_remove_member(ctx: Context<MultisigEdit>, old_member: Pubkey) -> Result<()> {
         ctx.accounts.check_current_authority()?;
         ctx.accounts.remove_multisig_member(old_member)?;
 
         Ok(())
     }
-    
-    pub fn multisig_set_time_lock(
-        ctx: Context<MultisigEdit>,
-        new_time_lock: u32,
-    ) -> Result<()> {
+
+    pub fn multisig_set_time_lock(ctx: Context<MultisigEdit>, new_time_lock: u32) -> Result<()> {
         ctx.accounts.check_current_authority()?;
         ctx.accounts.set_multisig_time_lock(new_time_lock)?;
 
@@ -113,8 +97,29 @@ pub mod collectivex_multisig {
         new_config_authority: Pubkey,
     ) -> Result<()> {
         ctx.accounts.check_current_authority()?;
-        ctx.accounts.set_multisig_config_authority(new_config_authority)?;
+        ctx.accounts
+            .set_multisig_config_authority(new_config_authority)?;
 
         Ok(())
-    }    
+    }
+
+    pub fn multisig_add_spending_limit(
+        ctx: Context<MultisigAddSpendingLimit>,
+        vault_index: u8,
+        mint: Pubkey,
+        amount: u64,
+        members: Vec<Pubkey>,
+        destinations: Vec<Pubkey>,
+    ) -> Result<()> {
+        let _ = ctx.accounts.multisig_add_spending_limit(
+            &ctx.bumps,
+            vault_index,
+            mint,
+            amount,
+            members,
+            destinations,
+        );
+
+        Ok(())
+    }
 }
