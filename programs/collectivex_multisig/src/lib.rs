@@ -6,7 +6,7 @@ pub mod instructions;
 use anchor_lang::prelude::*;
 
 pub use constants::*;
-pub use state::*;
+pub use state::{multisig, program_config, spending_limit};
 pub use instructions::*;
 
 
