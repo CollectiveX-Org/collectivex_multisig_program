@@ -93,7 +93,7 @@ impl <'info> MultisigEdit<'info> {
         Ok(())
     }
 
-    pub fn add_miltisig_member(
+    pub fn add_multisig_member(
         &mut self,
         new_member: Pubkey
     ) -> Result<()> {
