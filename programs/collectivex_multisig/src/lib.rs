@@ -124,4 +124,14 @@ pub mod collectivex_multisig {
 
         Ok(())
     }
+
+    pub fn multisig_remove_spending_limit(
+        ctx: Context<MultisigRemoveSpendingLimit>,
+        memo: Option<String>,
+    ) -> Result<()> {
+        ctx.accounts.check_current_authority()?;
+        ctx.accounts.multisig_remove_spending_limit(memo)?;
+    
+        Ok(())
+    }    
 }
