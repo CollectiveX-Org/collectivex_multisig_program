@@ -16,4 +16,6 @@ pub enum ErrorCode {
     NotAMember,
     #[msg("Threshold exceeds the number of members.")]
     InvalidThreshold,
+    #[msg("The specified spending limit is invalid.")]
+    InvalidSpendingLimit,
 }
