@@ -111,6 +111,8 @@ pub mod collectivex_multisig {
         members: Vec<Pubkey>,
         destinations: Vec<Pubkey>,
     ) -> Result<()> {
+        ctx.accounts.check_current_authority()?;
+
         let _ = ctx.accounts.multisig_add_spending_limit(
             &ctx.bumps,
             vault_index,
