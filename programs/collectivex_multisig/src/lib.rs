@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 pub use constants::*;
 pub use instructions::*;
-pub use state::{multisig, program_config, spending_limit};
+pub use state::{multisig, program_config, spending_limit, config_transaction, ConfigAction};
 
 declare_id!("8bX4XyTtZH3xGRyE1Y4tEvhvmD4GHdjiXAsEMQ39ZUBy");
 
@@ -134,4 +134,16 @@ pub mod collectivex_multisig {
     
         Ok(())
     }    
+
+    
+    pub fn config_transaction_create(
+        ctx: Context<ConfigTransactionCreate>,
+        actions: Vec<ConfigAction>,
+        memo: Option<String>,
+    ) -> Result<()> {
+        ctx.accounts.validate(&actions)?;
+        ctx.accounts.create_config_transaction(actions, memo)?;
+    
+        Ok(())
+    }
 }

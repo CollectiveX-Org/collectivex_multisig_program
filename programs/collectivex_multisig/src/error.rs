@@ -18,4 +18,6 @@ pub enum ErrorCode {
     InvalidThreshold,
     #[msg("The specified spending limit is invalid.")]
     InvalidSpendingLimit,
+    #[msg("No actions provided for the config transaction.")]
+    NoActions,
 }
