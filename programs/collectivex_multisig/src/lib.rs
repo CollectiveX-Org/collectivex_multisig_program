@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 pub use constants::*;
 pub use instructions::*;
-pub use state::{multisig, program_config, spending_limit, config_transaction, ConfigAction};
+pub use state::{config_transaction, multisig, program_config, spending_limit, ConfigAction};
 
 declare_id!("8bX4XyTtZH3xGRyE1Y4tEvhvmD4GHdjiXAsEMQ39ZUBy");
 
@@ -131,19 +131,28 @@ pub mod collectivex_multisig {
     ) -> Result<()> {
         ctx.accounts.check_current_authority()?;
         ctx.accounts.multisig_remove_spending_limit(memo)?;
-    
-        Ok(())
-    }    
 
-    
+        Ok(())
+    }
+
     pub fn config_transaction_create(
         ctx: Context<ConfigTransactionCreate>,
         actions: Vec<ConfigAction>,
-        memo: Option<String>,
     ) -> Result<()> {
         ctx.accounts.validate(&actions)?;
-        ctx.accounts.create_config_transaction(actions, memo)?;
-    
+        ctx.accounts.create_config_transaction(actions)?;
+
+        Ok(())
+    }
+
+    pub fn proposal_create(
+        ctx: Context<ProposalCreate>,
+        transaction_index: u64,
+        draft: bool,
+    ) -> Result<()> {
+        ctx.accounts.validate()?;
+        ctx.accounts.proposal_create(transaction_index, draft, &ctx.bumps)?;
+        
         Ok(())
     }
 }

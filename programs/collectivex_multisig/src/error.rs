@@ -20,4 +20,10 @@ pub enum ErrorCode {
     InvalidSpendingLimit,
     #[msg("No actions provided for the config transaction.")]
     NoActions,
+    #[msg("Member already approved the transaction")]
+    AlreadyApproved,
+    #[msg("Member already rejected the transaction")]
+    AlreadyRejected,
+    #[msg("Member already cancelled the transaction")]
+    AlreadyCancelled,
 }

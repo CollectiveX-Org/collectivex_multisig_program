@@ -54,7 +54,6 @@ impl<'info> ConfigTransactionCreate<'info> {
     pub fn create_config_transaction(
         &mut self,
         actions: Vec<ConfigAction>,
-        _memo: Option<String>,
     ) -> Result<()> {
         let multisig = &mut self.multisig;
         let transaction = &mut self.transaction;
