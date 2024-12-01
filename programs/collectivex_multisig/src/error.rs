@@ -26,4 +26,10 @@ pub enum ErrorCode {
     AlreadyRejected,
     #[msg("Member already cancelled the transaction")]
     AlreadyCancelled,
+    #[msg("The signer does not have the required permissions.")]
+    Unauthorized,
+    #[msg("Proposal is in an invalid status.")]
+    InvalidProposalStatus,
+    #[msg("The proposal is stale.")]
+    StaleProposal,
 }

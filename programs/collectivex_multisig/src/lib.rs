@@ -151,8 +151,17 @@ pub mod collectivex_multisig {
         draft: bool,
     ) -> Result<()> {
         ctx.accounts.validate()?;
-        ctx.accounts.proposal_create(transaction_index, draft, &ctx.bumps)?;
-        
+        ctx.accounts
+            .proposal_create(transaction_index, draft, &ctx.bumps)?;
+
+        Ok(())
+    }
+
+    /// Update the status of a multisig proposal from `Draft` to `Active`.
+    pub fn proposal_activate(ctx: Context<ProposalActivate>) -> Result<()> {
+        ctx.accounts.validate()?;
+        ctx.accounts.proposal_activate()?;
+
         Ok(())
     }
 }
