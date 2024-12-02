@@ -56,15 +56,19 @@ impl Proposal {
     }
 
     /// Registers a cancellation vote.
-    pub fn cancel(&mut self, member: Pubkey, threshold: usize) -> Result<()> {
-        // Insert the vote of cancellation.
-        match self.cancelled.binary_search(&member) {
-            Ok(_) => return err!(ErrorCode::AlreadyCancelled),
-            Err(pos) => self.cancelled.insert(pos, member),
-        };
+    pub fn cancel(&mut self, member: Pubkey, cutoff: usize) -> Result<()> {
+        if !self.approved.is_empty() {
+            self.approved.retain(|&x| x != member);
+        }
+        if !self.rejected.is_empty() {
+            self.rejected.retain(|&x| x != member);
+        }
 
-        // If current number of cancellations reaches threshold, mark the transaction as `Cancelled`.
-        if self.cancelled.len() >= threshold {
+        if !self.cancelled.contains(&member) {
+            self.cancelled.push(member);
+        }
+
+        if self.cancelled.len() >= cutoff {
             self.status = ProposalStatus::Cancelled;
         }
 
