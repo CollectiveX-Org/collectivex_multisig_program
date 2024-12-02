@@ -100,6 +100,17 @@ impl<'info> ProposalVote<'info> {
 
         Ok(())
     }
+
+    pub fn proposal_cancel(&mut self, _memo: Option<String>) -> Result<()> {
+        let multisig = &mut self.multisig;
+        let proposal = &mut self.proposal;
+        let member = &self.member;
+
+        // Cancel the proposal.
+        proposal.cancel(member.key(), multisig.threshold as usize)?;
+
+        Ok(())
+    }
 }
 
 pub enum Vote {

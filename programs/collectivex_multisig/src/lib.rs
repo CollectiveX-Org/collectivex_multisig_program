@@ -178,4 +178,11 @@ pub mod collectivex_multisig {
 
         Ok(())
     }
+
+    pub fn proposal_cancel(ctx: Context<ProposalVote>, _memo: Option<String>) -> Result<()> {
+        ctx.accounts.validate(Vote::Cancel)?;
+        ctx.accounts.proposal_cancel(_memo)?;
+
+        Ok(())
+    }
 }

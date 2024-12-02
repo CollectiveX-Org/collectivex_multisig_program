@@ -56,7 +56,7 @@ impl Proposal {
     }
 
     /// Registers a cancellation vote.
-    pub fn cancel(&mut self, member: Pubkey, cutoff: usize) -> Result<()> {
+    pub fn cancel(&mut self, member: Pubkey, threshold: usize) -> Result<()> {
         if !self.approved.is_empty() {
             self.approved.retain(|&x| x != member);
         }
@@ -68,7 +68,7 @@ impl Proposal {
             self.cancelled.push(member);
         }
 
-        if self.cancelled.len() >= cutoff {
+        if self.cancelled.len() >= threshold {
             self.status = ProposalStatus::Cancelled;
         }
 
