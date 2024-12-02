@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::error::ErrorCode;
 
 /// Tracks the status of a multisig proposal.
 #[account]
@@ -53,6 +54,22 @@ impl Proposal {
         }
         Ok(())
     }
+
+    /// Registers a cancellation vote.
+    pub fn cancel(&mut self, member: Pubkey, threshold: usize) -> Result<()> {
+        // Insert the vote of cancellation.
+        match self.cancelled.binary_search(&member) {
+            Ok(_) => return err!(ErrorCode::AlreadyCancelled),
+            Err(pos) => self.cancelled.insert(pos, member),
+        };
+
+        // If current number of cancellations reaches threshold, mark the transaction as `Cancelled`.
+        if self.cancelled.len() >= threshold {
+            self.status = ProposalStatus::Cancelled;
+        }
+
+        Ok(())
+    }
 }
 
 /// The status of a proposal.
@@ -62,4 +79,5 @@ pub enum ProposalStatus {
     Active,
     Approved,
     Rejected,
+    Cancelled
 }
