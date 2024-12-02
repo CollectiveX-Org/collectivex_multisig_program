@@ -171,4 +171,11 @@ pub mod collectivex_multisig {
     
         Ok(())
     }
+
+    pub fn proposal_reject(ctx: Context<ProposalVote>, _memo: Option<String>) -> Result<()> {
+        ctx.accounts.validate(Vote::Reject)?;
+        ctx.accounts.proposal_reject(_memo)?;
+
+        Ok(())
+    }
 }

@@ -88,6 +88,18 @@ impl<'info> ProposalVote<'info> {
 
         Ok(())
     }
+
+    pub fn proposal_reject(&mut self, _memo: Option<String>) -> Result<()> {
+        let multisig = &mut self.multisig;
+        let proposal = &mut self.proposal;
+        let member = &self.member;
+
+        let cutoff = multisig.members.len() - multisig.threshold as usize;
+        // Approve the proposal.
+        proposal.reject(member.key(), cutoff)?;
+
+        Ok(())
+    }
 }
 
 pub enum Vote {
