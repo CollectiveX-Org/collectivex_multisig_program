@@ -164,4 +164,11 @@ pub mod collectivex_multisig {
 
         Ok(())
     }
+
+    pub fn proposal_approve(ctx: Context<ProposalVote>, _memo: Option<String>) -> Result<()> {
+        ctx.accounts.validate(Vote::Approve)?;
+        ctx.accounts.proposal_approve(_memo)?;
+    
+        Ok(())
+    }
 }
